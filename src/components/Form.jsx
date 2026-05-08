@@ -27,6 +27,7 @@ function Form(props) {
       <input
         type="text"
         id="new-todo-input"
+        aria-label="Add new todo"
         className="input input__lg"
         name="text"
         autoComplete="off"
