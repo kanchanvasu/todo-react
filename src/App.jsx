@@ -85,6 +85,8 @@ function App(props) {
 
   const tasksNoun = taskList.length !== 1 ? "tasks" : "task";
   const headingText = `${taskList.length} ${tasksNoun} remaining`;
+  const emptyStateMessage =
+    "Nothing to do! Add a task above to get started.";
 
   const listHeadingRef = useRef(null);
   const prevTaskLength = usePrevious(tasks.length);
@@ -110,6 +112,11 @@ function App(props) {
       >
         {taskList}
       </ul>
+      {taskList.length === 0 && (
+        <p className="empty-state" role="status">
+          {emptyStateMessage}
+        </p>
+      )}
     </div>
   );
 }
