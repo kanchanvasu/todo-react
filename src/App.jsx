@@ -12,16 +12,23 @@ function usePrevious(value) {
   return ref.current;
 }
 
+const TODAY = new Date().toISOString().split('T')[0];
+
 const FILTER_MAP = {
   All: () => true,
   Active: (task) => !task.completed,
   Completed: (task) => task.completed,
+  "Due Today": (task) => task.dueDate === TODAY,
+  Overdue: (task) => task.dueDate && task.dueDate < TODAY && !task.completed,
 };
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function App(props) {
-  const [tasks, setTasks] = useState(props.tasks);
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem("tasks");
+    return saved ? JSON.parse(saved) : props.tasks;
+  });
   const [filter, setFilter] = useState("All");
 
   function toggleTaskCompleted(id) {
@@ -42,14 +49,11 @@ function App(props) {
     setTasks(remainingTasks);
   }
 
-  function editTask(id, newName) {
+  function editTask(id, newName, newDueDate) {
     const editedTaskList = tasks.map((task) => {
-      // if this task has the same ID as the edited task
       if (id === task.id) {
-        // Copy the task and update its name
-        return { ...task, name: newName };
+        return { ...task, name: newName, dueDate: newDueDate };
       }
-      // Return the original task if it's not the edited task
       return task;
     });
     setTasks(editedTaskList);
@@ -62,6 +66,7 @@ function App(props) {
         id={task.id}
         name={task.name}
         completed={task.completed}
+        dueDate={task.dueDate}
         key={task.id}
         toggleTaskCompleted={toggleTaskCompleted}
         deleteTask={deleteTask}
@@ -78,13 +83,17 @@ function App(props) {
     />
   ));
 
-  function addTask(name) {
-    const newTask = { id: "todo-" + nanoid(), name: name, completed: false };
+  function addTask(name, dueDate) {
+    const newTask = { id: "todo-" + nanoid(), name: name, completed: false, dueDate: dueDate || "" };
     setTasks([...tasks, newTask]);
   }
 
   const tasksNoun = taskList.length !== 1 ? "tasks" : "task";
   const headingText = `${taskList.length} ${tasksNoun} remaining`;
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   const listHeadingRef = useRef(null);
   const prevTaskLength = usePrevious(tasks.length);
